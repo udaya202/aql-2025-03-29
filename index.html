@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Air Quality Monitoring Dashboard</title>
+    
+    <!-- Internal CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+        .main-banner {
+            text-align: center;
+            padding: 50px 20px;
+            background-color: #00796b;
+            color: #fff;
+        }
+        .cta-button {
+            background-color: #ff9800;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .cta-button:hover {
+            background-color: #ff5722;
+        }
+        .overview-section {
+            background-color: #fff;
+            padding: 30px;
+            text-align: center;
+        }
+        .map-section {
+            padding: 50px 20px;
+            text-align: center;
+        }
+        /* Set height for the map container */
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+        .historical-data-section {
+            background-color: #e0f7fa;
+            padding: 30px;
+            text-align: center;
+            margin-top: 30px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .historical-data-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .historical-data-table th, .historical-data-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        footer ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        footer ul li {
+            margin: 10px 0;
+        }
+        footer ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+        /* Adjust the canvas size to make the chart smaller */
+        #chart-container {
+            width: 80%; /* Adjust width as needed */
+            margin: 0 auto;
+            max-width: 600px; /* Set a maximum width */
+        }
+        canvas {
+            width: 100% !important; /* Make the chart responsive */
+            height: 300px !important; /* Adjust height for a smaller chart */
+        }
+    </style>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <div class="logo">
+            <h1>Air Quality Dashboard</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#map-section">Real-time Map</a></li>
+                <li><a href="#historical-data-section">Historical Data</a></li>
+                <li><a href="#help-section">Help</a></li>
+                <li><a href="#about-section">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Banner Section -->
+    <section class="main-banner">
+        <h2>Welcome to the Real-time Air Quality Monitoring Dashboard</h2>
+        <p>Monitor the air quality in Colombo Metropolitan Area in real-time</p>
+        <a href="#overview-section" class="cta-button">Explore the Dashboard</a>
+    </section>
+
+    <!-- Overview Section -->
+    <section class="overview-section" id="overview-section">
+        <h4>Recent Air Quality Insights</h4>
+        <p>Average AQI in Colombo for the past 24 hours: 78 (Moderate)</p>
+        <div class="alert-section">
+            <p>Current Alerts: Moderate air quality detected in Fort area.</p>
+        </div>
+    </section>
+
+    <!-- Real-time Air Quality Map Section -->
+    <section class="map-section" id="map-section">
+        <h3>Real-time Air Quality Map</h3>
+        <p>Click on any sensor marker to view more details about the air quality in that area.</p>
+        <div id="map"></div>
+    </section>
+
+    <!-- Historical Data Section -->
+    <section class="historical-data-section" id="historical-data-section">
+        <h4>Historical Data</h4>
+        <p>Select a sensor location to view historical air quality data.</p>
+
+        <!-- Sensor Selection -->
+        <div>
+            <label for="sensor">Choose a Sensor Location:</label>
+            <select id="sensor">
+                <option value="sensor1">Sensor 1 - Fort</option>
+                <option value="sensor2">Sensor 2 - Galle Face</option>
+                <option value="sensor3">Sensor 3 - Colpetty</option>
+                <option value="sensor4">Sensor 4 - Nugegoda</option>
+                <option value="sensor5">Sensor 5 - Borella</option>
+            </select>
+            <button onclick="viewData()">View Data</button>
+        </div>
+
+        <!-- Historical Data Chart -->
+        <div id="chart-container">
+            <canvas id="historical-chart"></canvas>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer>
+        <ul>
+            <li><a href="#">About the Project</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Contact Us</a></li>
+        </ul>
+        <p>© 2025 Real-time Air Quality Monitoring Project</p>
+    </footer>
+
+    <!-- Leaflet.js for Map functionality -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([6.9271, 79.8612], 12);  // Coordinates for Colombo, Sri Lanka
+
+        // Check if the map is properly initialized
+        console.log('Map initialized:', map);
+
+        // Add the tile layer for the map
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Simulate sensor locations (coordinates for the example)
+        var sensors = [
+            {id: 'sensor1', name: 'Sensor 1 - Fort', coords: [6.9271, 79.8612]},
+            {id: 'sensor2', name: 'Sensor 2 - Galle Face', coords: [6.9319, 79.8488]},
+            {id: 'sensor3', name: 'Sensor 3 - Colpetty', coords: [6.9261, 79.9785]},
+            {id: 'sensor4', name: 'Sensor 4 - Nugegoda', coords: [6.9266, 79.9828]},
+            {id: 'sensor5', name: 'Sensor 5 - Borella', coords: [6.9310, 79.9582]}
+        ];
+
+        // Create markers for each sensor and add to the map
+        sensors.forEach(function(sensor) {
+            var marker = L.marker(sensor.coords).addTo(map);
+            marker.bindPopup(`<b>${sensor.name}</b><br>AQI: <span id="${sensor.id}-aqi">Loading...</span>`);
+            sensor.marker = marker;  // Store marker in sensor object for later updates
+        });
+
+        // Simulated historical data for each sensor
+        var historicalData = {
+            sensor1: {labels: ['2025-03-01', '2025-03-02', '2025-03-03'], data: [78, 82, 75]},
+            sensor2: {labels: ['2025-03-01', '2025-03-02', '2025-03-03'], data: [72, 80, 74]},
+            sensor3: {labels: ['2025-03-01', '2025-03-02', '2025-03-03'], data: [65, 70, 68]},
+            sensor4: {labels: ['2025-03-01', '2025-03-02', '2025-03-03'], data: [88, 85, 90]},
+            sensor5: {labels: ['2025-03-01', '2025-03-02', '2025-03-03'], data: [60, 58, 62]}
+        };
+
+        // Render the historical data chart
+        function renderChart(sensorId) {
+            var ctx = document.getElementById('historical-chart').getContext('2d');
+            var data = historicalData[sensorId];
+
+            var chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'AQI Data',
+                        data: data.data,
+                        borderColor: '#00796b',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Date' } },
+                        y: { title: { display: true, text: 'AQI' }, min: 0 }
+                    }
+                }
+            });
+        }
+
+        // Update AQI data and display on the map
+        function updateAQI() {
+            sensors.forEach(function(sensor) {
+                var newAQI = Math.floor(Math.random() * 100) + 50; // Random AQI between 50 and 150
+                document.getElementById(`${sensor.id}-aqi`).textContent = newAQI;
+            });
+
+            // Repeat every 2 seconds
+            setTimeout(updateAQI, 2000);
+        }
+
+        // View selected sensor's historical data chart
+        function viewData() {
+            var sensorId = document.getElementById("sensor").value;
+            renderChart(sensorId);
+        }
+
+        // Start real-time AQI data update
+        updateAQI();
+    </script>
+</body>
+</html>
